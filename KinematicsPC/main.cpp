@@ -9,18 +9,23 @@
 #include "frames_io.hpp"
 #include <stdio.h>
 #include <iostream>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+#include <QCursor>
+#include <QPoint>
+#include <QSize>
+#include <QDebug>
+
+//signal and slot method
+//checking for mouse move events
+//Qtimer to space them out
 
 using namespace KDL;
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-
-    //BUILDING THE LEGS
+//need to seperate the solving stuff out of these two methods
+//the solvers should be in their own function but only created once
+Chain makeLeftLeg(){
     Chain leftLeg = Chain();
-    Chain rightLeg = Chain();
 
     //CREATING THE LEFT LEG CHAIN
     Joint ltorsoToHipJoint(Joint::None);
@@ -50,6 +55,42 @@ int main(int argc, char *argv[])
     Joint lfootToFootJoint(Joint::RotZ);
     Frame lfootToFootFrame = Frame(Rotation::EulerZYX(0, M_PI / 2, 0)) * Frame(Vector(0, .02306, 0));
     leftLeg.addSegment(Segment(lfootToFootJoint, lfootToFootFrame));
+
+    //DEFINING MAX AND MINS FOR THE SERVO JOINTS
+    JntArray leftJointArrayMin = JntArray(7);
+    JntArray leftJointArrayMax = JntArray(7);
+
+    leftJointArrayMin(0) = 0;
+    leftJointArrayMin(1) = -0.7853981634;
+    leftJointArrayMin(2) = -0.7853981634;
+    leftJointArrayMin(3) = -0.7853981634;
+    leftJointArrayMin(4) = -0.7853981634;
+    leftJointArrayMin(5) = -0.7853981634;
+    leftJointArrayMin(6) = -0.7853981634;
+
+    leftJointArrayMax(0) = 0;
+    leftJointArrayMax(1) = 0.7853981634;
+    leftJointArrayMax(2) = 0.7853981634;
+    leftJointArrayMax(3) = 0.7853981634;
+    leftJointArrayMax(4) = 0.7853981634;
+    leftJointArrayMax(5) = 0.7853981634;
+    leftJointArrayMax(6) = 0.7853981634;
+
+    //FORWARD KINEMATIC SOLVERS
+    ChainFkSolverPos_recursive leftFkSolver = ChainFkSolverPos_recursive(leftLeg);
+
+    //INVERSE KINEMATIC SOLVER
+    ChainIkSolverVel_wdls leftIkSolverVel = ChainIkSolverVel_wdls(leftLeg);
+    ChainIkSolverPos_NR_JL leftIkSolverPos = ChainIkSolverPos_NR_JL(leftLeg, leftJointArrayMin, leftJointArrayMax, leftFkSolver, leftIkSolverVel);
+
+    //RESULTS JOINT ARRAY
+    JntArray leftResults[7];
+
+    return leftLeg;
+}
+
+Chain makeRightLeg(){
+    Chain rightLeg = Chain();
 
     //CREATING THE RIGHT LEG CHAIN
     Joint rtorsoToHipJoint(Joint::None);
@@ -81,26 +122,8 @@ int main(int argc, char *argv[])
     rightLeg.addSegment(Segment(rfootToFootJoint, rfootToFootFrame));
 
     //DEFINING MAX AND MINS FOR THE SERVO JOINTS
-    JntArray leftJointArrayMin = JntArray(7);
-    JntArray leftJointArrayMax = JntArray(7);
     JntArray rightJointArrayMin = JntArray(7);
     JntArray rightJointArrayMax = JntArray(7);
-
-    leftJointArrayMin(0) = 0;
-    leftJointArrayMin(1) = -0.7853981634;
-    leftJointArrayMin(2) = -0.7853981634;
-    leftJointArrayMin(3) = -0.7853981634;
-    leftJointArrayMin(4) = -0.7853981634;
-    leftJointArrayMin(5) = -0.7853981634;
-    leftJointArrayMin(6) = -0.7853981634;
-
-    leftJointArrayMax(0) = 0;
-    leftJointArrayMax(1) = 0.7853981634;
-    leftJointArrayMax(2) = 0.7853981634;
-    leftJointArrayMax(3) = 0.7853981634;
-    leftJointArrayMax(4) = 0.7853981634;
-    leftJointArrayMax(5) = 0.7853981634;
-    leftJointArrayMax(6) = 0.7853981634;
 
     rightJointArrayMin(0) = 0;
     rightJointArrayMin(1) = -0.7853981634;
@@ -119,26 +142,29 @@ int main(int argc, char *argv[])
     rightJointArrayMax(6) = 0.7853981634;
 
     //FORWARD KINEMATIC SOLVERS
-    ChainFkSolverPos_recursive leftFkSolver = ChainFkSolverPos_recursive(leftLeg);
     ChainFkSolverPos_recursive rightFkSolver = ChainFkSolverPos_recursive(rightLeg);
 
     //INVERSE KINEMATIC SOLVER
-    ChainIkSolverVel_wdls leftIkSolverVel = ChainIkSolverVel_wdls(leftLeg);
     ChainIkSolverVel_wdls rightIkSolverVel = ChainIkSolverVel_wdls(rightLeg);
-
-    ChainIkSolverPos_NR_JL leftIkSolverPos = ChainIkSolverPos_NR_JL(leftLeg, leftJointArrayMin, leftJointArrayMax, leftFkSolver, leftIkSolverVel);
     ChainIkSolverPos_NR_JL rightIkSolverPos = ChainIkSolverPos_NR_JL(rightLeg, rightJointArrayMin, rightJointArrayMax, rightFkSolver, rightIkSolverVel);
 
     //RESULTS JOINT ARRAY
-    JntArray leftResults[7];
     JntArray rightResults[7];
 
-    //GOAL FRAMES FOR THE FEET
+    return rightLeg;
+}
 
+int main(int argc, char *argv[])
+{
 
-    //RUNNING THE ALGORITHM
-    int leftRet =
-    int rightRet =
+    if(serial.open(QIODevice::ReadWrite)){
+        serial.write("M114 \n");
+        serial.close();
+    }
+
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
 
     return a.exec();
 }

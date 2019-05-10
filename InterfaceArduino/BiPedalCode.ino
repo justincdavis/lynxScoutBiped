@@ -226,27 +226,32 @@ void returnLeg(bool isLeftSide){
 }
 
 void loop(){
-  if(!hasIntialized){
-    groupServoMove(12, neutralData);
-    hasIntialized = true;
-    delay(2000);
-  }
-
-
-  
-  moveCenterOfGravity(true);
-  raiseFoot(false, 300);
- moveLegForward(false, 300);
-  moveLegForward(true, -200);
-  returnFoot(false);
- returnLeg(true);
-  returnLeg(false);
+//  if(!hasIntialized){
+//    groupServoMove(12, neutralData);
+//    hasIntialized = true;
+//    delay(2000);
+//  }
 //
-  moveCenterOfGravity(false);
-  raiseFoot(true, 300);
- moveLegForward(true, 300);
-  moveLegForward(false, -200);
-  returnFoot(true);
-  returnLeg(false);
-  returnLeg(true);
+//
+//  
+//  moveCenterOfGravity(true);
+//  raiseFoot(false, 300);
+// moveLegForward(false, 300);
+//  moveLegForward(true, -200);
+//  returnFoot(false);
+// returnLeg(true);
+//  returnLeg(false);
+////
+//  moveCenterOfGravity(false);
+//  raiseFoot(true, 300);
+// moveLegForward(true, 300);
+//  moveLegForward(false, -200);
+//  returnFoot(true);
+//  returnLeg(false);
+//  returnLeg(true);
+
+   //send some test data to the computer FUN
+
+
+
 }
